@@ -29,7 +29,7 @@ for details on configuration. This adapter handles zero `TaskBunny` related conf
 ## Creating Enqueuers
 
 We can start off by creating a new `GenQueue` module, which we will use to push jobs to
-Exq.
+`TaskBunny`.
 
 ```elixir
 defmodule Enqueuer do
