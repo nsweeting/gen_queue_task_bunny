@@ -12,6 +12,7 @@ defmodule GenQueueTaskBunny.MixProject do
       deps: deps(),
       description: description(),
       package: package(),
+      name: "GenQueue TaskBunny",
       docs: docs()
     ]
   end
@@ -52,7 +53,7 @@ defmodule GenQueueTaskBunny.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:gen_queue, "~> 0.1.4"},
+      {:gen_queue, "~> 0.1.5"},
       {:task_bunny, "~> 0.3.1", runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]

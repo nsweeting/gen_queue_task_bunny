@@ -37,7 +37,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push(Job)
       assert_receive({:performed, %{}})
-      assert {Job, [%{}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{}]} = job
       stop_process(pid)
     end
 
@@ -45,7 +45,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job})
       assert_receive({:performed, %{}})
-      assert {Job, [%{}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{}]} = job
       stop_process(pid)
     end
 
@@ -53,7 +53,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, [%{"foo" => "bar"}]})
       assert_receive({:performed, %{"foo" => "bar"}})
-      assert {Job, [%{"foo" => "bar"}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{"foo" => "bar"}]} = job
       stop_process(pid)
     end
 
@@ -61,7 +61,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, %{"foo" => "bar"}})
       assert_receive({:performed, %{"foo" => "bar"}})
-      assert {Job, [%{"foo" => "bar"}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{"foo" => "bar"}]} = job
       stop_process(pid)
     end
 
@@ -69,7 +69,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, []}, delay: 0)
       assert_receive({:performed, %{}})
-      assert {Job, [%{}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{}], delay: 0} = job
       stop_process(pid)
     end
 
@@ -77,7 +77,7 @@ defmodule GenQueue.Adapters.TaskBunnyTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, []}, delay: DateTime.utc_now())
       assert_receive({:performed, %{}})
-      assert {Job, [%{}], %{}} = job
+      assert %GenQueue.Job{module: Job, args: [%{}], delay: %DateTime{}} = job
       stop_process(pid)
     end
   end

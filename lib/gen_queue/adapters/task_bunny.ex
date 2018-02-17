@@ -3,84 +3,46 @@ defmodule GenQueue.Adapters.TaskBunny do
   An adapter for `GenQueue` to enable functionaility with `TaskBunny`.
   """
 
-  @type job :: module | {module} | {module, any}
-  @type pushed_job :: {module, list, map}
-
-  use GenQueue.Adapter
+  use GenQueue.JobAdapter
 
   def start_link(_gen_queue, _opts) do
     TaskBunny.Supervisor.start_link()
   end
 
   @doc """
-  Push a job for TaskBunny to consume.
+  Push a `GenQueue.Job` for `TaskBunny` to consume.
 
   ## Parameters:
-    * `gen_queue` - Any GenQueue module
-    * `job` - Any valid job format
-    * `opts` - A keyword list of job options
-
-  ## Options
-    * `:queue` - The queue to push the job to.
-    * `:delay` - Either a `DateTime` or millseconds-based integer.
+    * `gen_queue` - A `GenQueue` module
+    * `job` - A `GenQueue.Job`
 
   ## Returns:
-    * `{:ok, {module, args, opts}}` if the operation was successful
+    * `{:ok, job}` if the operation was successful
     * `{:error, reason}` if there was an error
   """
-  def handle_push(_gen_queue, job, opts) when is_atom(job) do
-    do_enqueue(job, %{}, build_opts_map(opts))
+  @spec handle_job(gen_queue :: GenQueue.t(), job :: GenQueue.Job.t()) ::
+          {:ok, GenQueue.Job.t()} | {:error, any}
+  def handle_job(gen_queue, %GenQueue.Job{args: []} = job) do
+    handle_job(gen_queue, %{job | args: [%{}]})
   end
 
-  def handle_push(_gen_queue, {job}, opts) do
-    do_enqueue(job, %{}, build_opts_map(opts))
-  end
-
-  def handle_push(_gen_queue, {job, arg}, opts) when is_map(arg) do
-    do_enqueue(job, arg, build_opts_map(opts))
-  end
-
-  def handle_push(_gen_queue, {job, []}, opts) do
-    do_enqueue(job, %{}, build_opts_map(opts))
-  end
-
-  def handle_push(_gen_queue, {job, [arg]}, opts) when is_map(arg) do
-    do_enqueue(job, arg, build_opts_map(opts))
-  end
-
-  @doc false
-  def handle_pop(_gen_queue, _opts) do
-    {:error, :not_implemented}
-  end
-
-  @doc false
-  def handle_flush(_gen_queue, _opts) do
-    {:error, :not_implemented}
-  end
-
-  @doc false
-  def handle_length(_gen_queue, _opts) do
-    {:error, :not_implemented}
-  end
-
-  @doc false
-  def build_opts_map(opts) do
-    opts
-    |> Enum.into(%{})
-    |> case do
-      %{delay: %DateTime{} = delay} = opts ->
-        ms_delay = DateTime.diff(DateTime.utc_now(), delay, :millisecond)
-        Map.put(opts, :delay, ms_delay)
-
-      opts ->
-        opts
-    end
-  end
-
-  defp do_enqueue(job, arg, opts) do
-    case TaskBunny.Job.enqueue(job, arg, Enum.into(opts, [])) do
-      :ok -> {:ok, {job, [arg], opts}}
+  def handle_job(gen_queue, %GenQueue.Job{args: [arg]} = job) do
+    case TaskBunny.Job.enqueue(job.module, arg, build_options(job)) do
+      :ok -> {:ok, job}
       error -> error
     end
+  end
+
+  defp build_options(%GenQueue.Job{queue: queue, delay: %DateTime{} = delay}) do
+    ms_delay = DateTime.diff(DateTime.utc_now(), delay, :millisecond)
+    [queue: queue, delay: delay]
+  end
+
+  defp build_options(%GenQueue.Job{queue: queue, delay: delay}) when is_integer(delay) do
+    [queue: queue, delay: delay]
+  end
+
+  defp build_options(%GenQueue.Job{queue: queue}) do
+    [queue: queue]
   end
 end
