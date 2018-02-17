@@ -35,7 +35,7 @@ defmodule GenQueue.Adapters.TaskBunny do
 
   defp build_options(%GenQueue.Job{queue: queue, delay: %DateTime{} = delay}) do
     ms_delay = DateTime.diff(DateTime.utc_now(), delay, :millisecond)
-    [queue: queue, delay: delay]
+    [queue: queue, delay: ms_delay]
   end
 
   defp build_options(%GenQueue.Job{queue: queue, delay: delay}) when is_integer(delay) do

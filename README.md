@@ -131,7 +131,7 @@ defmodule MyJobTest do
 
   test "my enqueuer works" do
     {:ok, _} = Enqueuer.push(Job)
-    assert_receive({Job, [%{}], %{}})
+    assert_receive(%GenQueue.Job{module: Job, args: []})
   end
 end
 ```
